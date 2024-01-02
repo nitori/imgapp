@@ -30,25 +30,31 @@ let sortState = {
     sort_by: 'name',
     sort_order: 'asc',
 };
+let sortStateChanged = false;
 
 async function fetchState() {
     let resp = await fetch('/list');
     /** @type ApiList */
     let data = await resp.json();
 
+    let pathChanged = state.path !== data.path;
+
     state.path = data.path;
     state.folders = data.folders;
     state.files = data.files;
     state.show_hidden = data.show_hidden;
 
-    if (state.files.length > 0) {
-        currentFile = state.files[0].path;
-    } else {
-        currentFile = null;
+    if (pathChanged) {
+        if (state.files.length > 0) {
+            currentFile = state.files[0].path;
+        } else {
+            currentFile = null;
+        }
     }
 
     let resp2 = await fetch('/sorting');
     let data2 = await resp2.json();
+    sortStateChanged = sortState.sort_by !== data2.sort_by || sortState.sort_order !== data2.sort_order;
     sortState.sort_by = data2.sort_by;
     sortState.sort_order = data2.sort_order;
     updateState();
@@ -67,13 +73,14 @@ async function preload(index) {
 
 function updateState() {
     let rebuildLists = true;
-    if ($path.text() === state.path) {
+    if (!sortStateChanged && $path.text() === state.path) {
         rebuildLists = false;
     } else {
         $path.text(state.path);
         $folders.empty();
         $files.empty();
     }
+    sortStateChanged = false; // reset
 
     if (currentFile === null) {
         $imageHolder.empty();
@@ -175,28 +182,22 @@ window.addEventListener('keypress', ev => {
         toggleFullscreen($imageHolder[0]);
     } else if (ev.key === 'r') {
         (async () => {
-            let resp = await fetch('/update-sorting', {
+            await fetch('/update-sorting', {
                 method: 'POST',
                 body: new URLSearchParams({
                     sort_order: sortState.sort_order === 'asc' ? 'desc' : 'asc',
                 }),
             });
-            let data = await resp.json();
-            sortState.sort_by = data.sort_by;
-            sortState.sort_order = data.sort_order;
             await fetchState();
         })();
     } else if (ev.key === 'n' || ev.key === 'm') {
         (async () => {
-            let resp = await fetch('/update-sorting', {
+            await fetch('/update-sorting', {
                 method: 'POST',
                 body: new URLSearchParams({
                     sort_by: ev.key === 'n' ? 'name' : 'mtime',
                 }),
             });
-            let data = await resp.json();
-            sortState.sort_by = data.sort_by;
-            sortState.sort_order = data.sort_order;
             await fetchState();
         })();
     } else if (ev.key === 'h') {
