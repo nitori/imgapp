@@ -45,6 +45,17 @@ a:hover {
     overflow-y: auto;
 }
 
+#shortcuts {
+    color: rgba(255, 255, 255, .7);
+    font-size: 12px;
+}
+
+.red {
+    color: red;
+    --link-color: red;
+    --link-color-hover: red;
+}
+
 #folders {
     padding: 10px;
     border-bottom: 1px;

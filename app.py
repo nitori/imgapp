@@ -46,7 +46,16 @@ def folder_list():
             files.append({
                 'name': entry.name,
                 'path': str(entry),
+                'mtime': entry.stat().st_mtime,
             })
+
+    # always sort folders by name (for now)
+    folders.sort(key=lambda f: f['name'])
+
+    sort_by = session['sort_by']
+    sort_order = session['sort_order']
+    files.sort(key=lambda f: f[sort_by], reverse=sort_order == 'desc')
+
     return jsonify(path=str(path), folders=folders, files=files, show_hidden=session['show_hidden'])
 
 
@@ -56,10 +65,37 @@ def change_folder():
     return jsonify(path=session['path'])
 
 
-@app.route('/toggle-show-hidden', methods=['POST'])
+@app.route('/toggle-hidden', methods=['POST'])
 def show_hidden():
     session['show_hidden'] = not session['show_hidden']
     return jsonify(show_hidden=session['show_hidden'])
+
+
+@app.route('/sorting')
+def get_sorting():
+    return jsonify(
+        sort_by=session['sort_by'],
+        sort_order=session['sort_order'],
+    )
+
+
+@app.route('/update-sorting', methods=['POST'])
+def update_sorting():
+    sort_by = request.form.get('sort_by', None)
+    sort_order = request.form.get('sort_order', None)
+    if sort_by not in [None, 'name', 'mtime']:
+        return jsonify(error='Invalid sort_by value'), 400
+    if sort_order not in [None, 'asc', 'desc']:
+        return jsonify(error='Invalid sort_order value'), 400
+
+    if sort_by is not None:
+        session['sort_by'] = sort_by
+    if sort_order is not None:
+        session['sort_order'] = sort_order
+    return jsonify(
+        sort_by=session['sort_by'],
+        sort_order=session['sort_order'],
+    )
 
 
 @app.route('/get-file', methods=['GET'])
@@ -87,6 +123,12 @@ def before_request():
 
     if 'show_hidden' not in session:
         session['show_hidden'] = False
+
+    if 'sort_by' not in session:
+        session['sort_by'] = 'name'
+
+    if 'sort_order' not in session:
+        session['sort_order'] = 'asc'
 
 
 if __name__ == '__main__':
