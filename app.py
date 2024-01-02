@@ -49,12 +49,23 @@ def folder_list():
                 'mtime': entry.stat().st_mtime,
             })
 
+    def _by_name(f):
+        return f['name'].casefold().strip('[](){}_-')
+
+    def _by_mtime(f):
+        return f['mtime']
+
     # always sort folders by name (for now)
-    folders.sort(key=lambda f: f['name'])
+    folders.sort(key=_by_name)
 
     sort_by = session['sort_by']
     sort_order = session['sort_order']
-    files.sort(key=lambda f: f[sort_by], reverse=sort_order == 'desc')
+
+    sort_func_map = {
+        'name': _by_name,
+        'mtime': _by_mtime,
+    }
+    files.sort(key=sort_func_map[sort_by], reverse=sort_order == 'desc')
 
     return jsonify(path=str(path), folders=folders, files=files, show_hidden=session['show_hidden'])
 

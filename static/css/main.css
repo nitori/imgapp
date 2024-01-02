@@ -59,6 +59,8 @@ a:hover {
 #folders {
     padding: 10px;
     border-bottom: 1px;
+    background: #111;
+    white-space: nowrap;
 }
 
 #files {

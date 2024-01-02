@@ -81,7 +81,7 @@ function updateState() {
             || currentFile.endsWith('.webm')
         ) {
             $image = $(html`
-                <video controls autoplay>
+                <video controls autoplay loop>
                     <source src="${imageUrl}">
                 </video>`);
         } else {
@@ -193,8 +193,7 @@ window.addEventListener('keydown', ev => {
     }
 });
 
-window.addEventListener('wheel', ev => {
-    console.log(ev.deltaY);
+$imageHolder[0].addEventListener('wheel', ev => {
     if (ev.deltaY < 0) {
         prevImage();
     } else if (ev.deltaY > 0) {
