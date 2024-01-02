@@ -110,7 +110,7 @@ def get_file():
     if path.suffix not in EXTENSIONS:
         return jsonify(error='File type not supported'), 400
 
-    return send_file(path, mimetype=EXTENSIONS[path.suffix])
+    return send_file(path, mimetype=EXTENSIONS[path.suffix], max_age=3600)
 
 
 @app.before_request
