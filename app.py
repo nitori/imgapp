@@ -50,7 +50,7 @@ def folder_list():
             })
 
     def _by_name(f):
-        return f['name'].casefold().strip('[](){}_-')
+        return f['name'].casefold().strip('[](){}<>')
 
     def _by_mtime(f):
         return f['mtime']
