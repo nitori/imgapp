@@ -116,6 +116,26 @@ function updateEvents() {
     });
 }
 
+function nextImage() {
+    let index = state.files.findIndex(file => file.path === currentFile);
+    if (index >= state.files.length - 1) {
+        return;
+    }
+    index++;
+    currentFile = state.files[index].path;
+    updateState();
+}
+
+function prevImage() {
+    let index = state.files.findIndex(file => file.path === currentFile);
+    if (index <= 0) {
+        return;
+    }
+    index--;
+    currentFile = state.files[index].path;
+    updateState();
+}
+
 $(() => fetchState());
 
 window.addEventListener('keypress', ev => {
@@ -158,23 +178,10 @@ window.addEventListener('keypress', ev => {
 window.addEventListener('keydown', ev => {
     if (ev.key === 'PageUp') {
         ev.preventDefault();
-        let index = state.files.findIndex(file => file.path === currentFile);
-        if (index <= 0) {
-            return;
-        }
-        index--;
-        currentFile = state.files[index].path;
-        updateState();
-
+        prevImage();
     } else if (ev.key === 'PageDown') {
         ev.preventDefault();
-        let index = state.files.findIndex(file => file.path === currentFile);
-        if (index >= state.files.length - 1) {
-            return;
-        }
-        index++;
-        currentFile = state.files[index].path;
-        updateState();
+        nextImage();
     } else if (ev.key === 'Home') {
         ev.preventDefault();
         currentFile = state.files[0].path;
@@ -183,7 +190,14 @@ window.addEventListener('keydown', ev => {
         ev.preventDefault();
         currentFile = state.files[state.files.length - 1].path;
         updateState();
-    } else {
-        console.log(ev.key);
+    }
+});
+
+window.addEventListener('wheel', ev => {
+    console.log(ev.deltaY);
+    if (ev.deltaY < 0) {
+        prevImage();
+    } else if (ev.deltaY > 0) {
+        nextImage();
     }
 });
