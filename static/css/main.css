@@ -1,0 +1,70 @@
+@import './normalize.css';
+
+:root {
+    --link-color: white;
+    --link-color-hover: #ccc;
+    --link-text-decoration: none;
+    --link-text-decoration-hover: underline;
+}
+
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+body, html {
+    padding: 0;
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: sans-serif;
+    font-size: 18px;
+    overflow: hidden;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: var(--link-text-decoration);
+}
+
+a:hover {
+    color: var(--link-color-hover);
+    text-decoration: var(--link-text-decoration-hover);
+}
+
+#main {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+#left {
+    flex: 0 1 300px;
+    max-width: 300px;
+    width: 300px;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+#folders {
+    padding: 10px;
+    border-bottom: 1px;
+}
+
+#files {
+    padding: 10px;
+}
+
+#right {
+    flex: 1 0 0;
+    max-width: 100%;
+    height: 100vh;
+}
+
+#image img,
+#image video {
+    display: block;
+    width: 100%;
+    height: 100vh;
+    object-fit: scale-down;
+    object-position: center;
+}

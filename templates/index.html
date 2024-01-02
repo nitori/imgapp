@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+    <title>Image Viewer {{ session['path'] }}</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+
+<div id="main">
+    <div id="left">
+        <div id="path"></div>
+        <div id="folders"></div>
+        <div id="files"></div>
+    </div>
+    <div id="right">
+        <div id="image"></div>
+    </div>
+</div>
+
+<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
