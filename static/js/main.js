@@ -41,6 +41,12 @@ async function fetchState() {
     state.files = data.files;
     state.show_hidden = data.show_hidden;
 
+    if (state.files.length > 0) {
+        currentFile = state.files[0].path;
+    } else {
+        currentFile = null;
+    }
+
     let resp2 = await fetch('/sorting');
     let data2 = await resp2.json();
     sortState.sort_by = data2.sort_by;
@@ -69,7 +75,9 @@ function updateState() {
         $files.empty();
     }
 
-    if (currentFile !== null) {
+    if (currentFile === null) {
+        $imageHolder.empty();
+    } else {
         let imageUrl = new URL(`/get-file`, window.location.origin);
         imageUrl.searchParams.append('path', currentFile);
 
