@@ -48,6 +48,17 @@ async function fetchState() {
     updateState();
 }
 
+async function preload(index) {
+    if (index < 0 || index >= state.files.length) {
+        return;
+    }
+    let file = state.files[index];
+    let imageUrl = new URL(`/get-file`, window.location.origin);
+    imageUrl.searchParams.append('path', file.path);
+    let img = new Image();
+    img.src = imageUrl.toString();
+}
+
 function updateState() {
     let rebuildLists = true;
     if ($path.text() === state.path) {
@@ -135,6 +146,7 @@ function nextImage() {
     index++;
     currentFile = state.files[index].path;
     updateState();
+    preload(index + 1);
 }
 
 function prevImage() {
@@ -145,6 +157,7 @@ function prevImage() {
     index--;
     currentFile = state.files[index].path;
     updateState();
+    preload(index - 1);
 }
 
 $(() => fetchState());
