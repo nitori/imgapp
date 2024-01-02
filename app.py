@@ -80,7 +80,10 @@ def get_file():
 @app.before_request
 def before_request():
     if 'path' not in session:
-        session['path'] = str(Path.home())
+        path = Path.home() / 'Pictures'
+        if not path.exists() or not path.is_dir():
+            path = Path.home()
+        session['path'] = str(path)
 
     if 'show_hidden' not in session:
         session['show_hidden'] = False
