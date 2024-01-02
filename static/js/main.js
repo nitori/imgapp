@@ -49,26 +49,14 @@ async function fetchState() {
 }
 
 function updateState() {
-    $path.text(state.path);
-    $folders.empty();
-    $files.empty();
-    $('*[data-file]').removeClass('red');
-
-    state.folders.forEach(folder => {
-        $folders.append(`<div><a href="#${folder.path}" data-folder="${folder.path}">${folder.name}</a></div>`);
-    });
-
-    state.files.forEach(file => {
-        $files.append(`<div><a href="#${file.path}" data-file="${file.path}" class="${
-            file.path === currentFile ? 'red' : ''
-        }">${file.name}</a></div>`);
-    });
-
-    $sortingShortcuts.empty();
-    $sortingShortcuts.append(`<span class="${sortState.sort_by === 'name' ? 'red' : ''}">n: name</span><br>`);
-    $sortingShortcuts.append(`<span class="${sortState.sort_by === 'mtime' ? 'red' : ''}">m: mtime</span><br>`);
-    $sortingShortcuts.append(`<span class="${sortState.sort_order === 'desc' ? 'red' : ''}">r: reverse</span><br>`);
-    $sortingShortcuts.append(`<span class="${state.show_hidden ? 'red' : ''}">h: hidden</span><br>`);
+    let rebuildLists = true;
+    if ($path.text() === state.path) {
+        rebuildLists = false;
+    } else {
+        $path.text(state.path);
+        $folders.empty();
+        $files.empty();
+    }
 
     if (currentFile !== null) {
         let imageUrl = new URL(`/get-file`, window.location.origin);
@@ -91,6 +79,29 @@ function updateState() {
         $image.attr('src', imageUrl);
         $imageHolder.append($image);
     }
+
+    if (rebuildLists) {
+        state.folders.forEach(folder => {
+            $folders.append(`<div><a href="#${folder.path}" data-folder="${folder.path}">${folder.name}</a></div>`);
+        });
+    }
+
+    if (rebuildLists) {
+        state.files.forEach(file => {
+            $files.append(`<div><a href="#${file.path}" data-file="${file.path}" class="${
+                file.path === currentFile ? 'red' : ''
+            }">${file.name}</a></div>`);
+        });
+    } else {
+        $files.find('.red').removeClass('red');
+        $files.find(`*[data-file="${currentFile}"]`).addClass('red');
+    }
+
+    $sortingShortcuts.empty();
+    $sortingShortcuts.append(`<span class="${sortState.sort_by === 'name' ? 'red' : ''}">n: name</span><br>`);
+    $sortingShortcuts.append(`<span class="${sortState.sort_by === 'mtime' ? 'red' : ''}">m: mtime</span><br>`);
+    $sortingShortcuts.append(`<span class="${sortState.sort_order === 'desc' ? 'red' : ''}">r: reverse</span><br>`);
+    $sortingShortcuts.append(`<span class="${state.show_hidden ? 'red' : ''}">h: hidden</span><br>`);
 
     updateEvents();
 }
@@ -140,7 +151,7 @@ $(() => fetchState());
 
 window.addEventListener('keypress', ev => {
     if (ev.key === 'f') {
-        toggleFullscreen($imageHolder.children().first()[0]);
+        toggleFullscreen($imageHolder[0]);
     } else if (ev.key === 'r') {
         (async () => {
             let resp = await fetch('/update-sorting', {
