@@ -21,6 +21,13 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
 
+def default_path() -> Path:
+    path = Path.home() / 'Pictures'
+    if not path.exists() or not path.is_dir():
+        path = Path.home()
+    return path
+
+
 def listdrives():
     if os.name != 'nt':
         return
@@ -56,14 +63,29 @@ def index():
 
 @app.route('/list')
 def folder_list():
-    path = Path(session['path'])
+    path_str = request.args.get('path', '')
+    if path_str:
+        path = Path(path_str)
+    else:
+        path = default_path()
+
+    if not path.exists() or not path.is_dir():
+        return jsonify(error='Path does not exist'), 404
+
+    try:
+        path = path.resolve(strict=True)
+    except (FileNotFoundError, RuntimeError):
+        return jsonify(error='Path does not exist'), 404
+
     folders = []
     files = []
 
-    for entry in path.iterdir():
-        if entry.name.startswith('.') and not session['show_hidden']:
-            continue
+    folders.append({
+        'name': '..',
+        'path': str(path.parent).replace('\\', '/'),
+    })
 
+    for entry in path.iterdir():
         if entry.is_dir():
             folders.append({
                 'name': entry.name,
@@ -76,73 +98,10 @@ def folder_list():
                 'mtime': entry.stat().st_mtime,
             })
 
-    def _by_name(f):
-        return f['name'].casefold().strip('[](){}<>')
-
-    def _by_mtime(f):
-        return f['mtime']
-
-    # always sort folders by name (for now)
-    folders.sort(key=_by_name)
-
-    folders.insert(0, {
-        'name': '..',
-        'path': str(path.parent).replace('\\', '/'),
-    })
-
-    sort_by = session['sort_by']
-    sort_order = session['sort_order']
-
-    sort_func_map = {
-        'name': _by_name,
-        'mtime': _by_mtime,
-    }
-    files.sort(key=sort_func_map[sort_by], reverse=sort_order == 'desc')
-
     return jsonify(
-        path=str(path).replace('\\', '/'),
+        canonical_path=str(path).replace('\\', '/'),
         folders=folders,
         files=files,
-        show_hidden=session['show_hidden']
-    )
-
-
-@app.route('/change-folder', methods=['POST'])
-def change_folder():
-    session['path'] = str(Path(request.form['path']).resolve()).replace('\\', '/')
-    return jsonify(path=session['path'])
-
-
-@app.route('/toggle-hidden', methods=['POST'])
-def show_hidden():
-    session['show_hidden'] = not session['show_hidden']
-    return jsonify(show_hidden=session['show_hidden'])
-
-
-@app.route('/sorting')
-def get_sorting():
-    return jsonify(
-        sort_by=session['sort_by'],
-        sort_order=session['sort_order'],
-    )
-
-
-@app.route('/update-sorting', methods=['POST'])
-def update_sorting():
-    sort_by = request.form.get('sort_by', None)
-    sort_order = request.form.get('sort_order', None)
-    if sort_by not in [None, 'name', 'mtime']:
-        return jsonify(error='Invalid sort_by value'), 400
-    if sort_order not in [None, 'asc', 'desc']:
-        return jsonify(error='Invalid sort_order value'), 400
-
-    if sort_by is not None:
-        session['sort_by'] = sort_by
-    if sort_order is not None:
-        session['sort_order'] = sort_order
-    return jsonify(
-        sort_by=session['sort_by'],
-        sort_order=session['sort_order'],
     )
 
 
@@ -159,24 +118,6 @@ def get_file():
         return jsonify(error='File type not supported'), 400
 
     return send_file(path, mimetype=EXTENSIONS[path.suffix], max_age=3600)
-
-
-@app.before_request
-def before_request():
-    if 'path' not in session:
-        path = Path.home() / 'Pictures'
-        if not path.exists() or not path.is_dir():
-            path = Path.home()
-        session['path'] = str(path).replace('\\', '/')
-
-    if 'show_hidden' not in session:
-        session['show_hidden'] = False
-
-    if 'sort_by' not in session:
-        session['sort_by'] = 'name'
-
-    if 'sort_order' not in session:
-        session['sort_order'] = 'asc'
 
 
 if __name__ == '__main__':

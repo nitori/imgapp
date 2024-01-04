@@ -137,12 +137,16 @@ a:hover {
     object-position: center;
 }
 
-.red {
+.active {
     color: red;
     --link-color: red;
     --link-color-hover: red;
 }
 
-a.red {
+a.active {
     background: rgba(255, 255, 255, .05);
+}
+
+.previous {
+    background: rgba(255, 0, 0, .2);
 }
