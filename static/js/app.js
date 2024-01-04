@@ -22,6 +22,7 @@ import {html, toggleFullscreen} from './utils.js';
  * }} AppState
  */
 
+const MAX_CACHED_IMAGES = 50;
 
 /** @type {AppState} */
 const defaultState = {
@@ -233,37 +234,22 @@ export default class App {
             document.title = 'Image Viewer';
             return;
         }
-        let imageUrl = new URL(`/get-file`, window.location.origin);
-        imageUrl.searchParams.append('path', this.state.currentFile);
         document.title = this.state.currentFile.split(/\//).pop();
 
         this.$imageHolder.empty();
-        let $image;
-        if (
-            this.state.currentFile.endsWith('.mp4')
-            || this.state.currentFile.endsWith('.webm')
-        ) {
-            $image = $(html`
+        let $media;
+
+        if (this.state.currentFile.match(/\.(mp4|webm)$/)) {
+            $media = $(html`
                 <video controls autoplay loop>
-                    <source src="${imageUrl}">
+                    <source src="${this._getVideo(this.state.currentFile)}">
                 </video>`);
         } else {
-
-            if (!this._fileCache.hasOwnProperty(this.state.currentFile)) {
-                this._fileCache[this.state.currentFile] = {
-                    img: new Image(),
-                    ts: Date.now() / 1000.0,
-                };
-                this._fileCache[this.state.currentFile].img.src = imageUrl;
-            } else {
-                this._fileCache[this.state.currentFile].ts = Date.now() / 1000.0;
-            }
-
-            $image = $(this._fileCache[this.state.currentFile].img);
+            $media = $(this._getImage(this.state.currentFile));
 
             // keep only 10 images in cache.
             let keys = Object.keys(this._fileCache);
-            if (keys.length > 10) {
+            if (keys.length > MAX_CACHED_IMAGES) {
                 let oldestKey = keys.reduce((a, b) => {
                     if (this._fileCache[a].ts < this._fileCache[b].ts) {
                         return a;
@@ -274,8 +260,41 @@ export default class App {
             }
         }
 
-        $image.attr('src', imageUrl);
-        this.$imageHolder.append($image);
+        this.$imageHolder.append($media);
+        this._preloadNextAndPrevious();
+    }
+
+    _getVideo(file) {
+        let url = new URL(`/get-file`, window.location.origin);
+        url.searchParams.append('path', file);
+        return url.toString();
+    }
+
+    _getImage(file) {
+        let url = new URL(`/get-file`, window.location.origin);
+        url.searchParams.append('path', file);
+
+        if (!this._fileCache.hasOwnProperty(file)) {
+            this._fileCache[file] = {
+                img: new Image(),
+                ts: Date.now() / 1000.0,
+            };
+            this._fileCache[file].img.src = url;
+        } else {
+            this._fileCache[file].ts = Date.now() / 1000.0;
+        }
+
+        return this._fileCache[file].img;
+    }
+
+    _preloadNextAndPrevious() {
+        if (this.state.files.length === 0) {
+            return;
+        }
+        let nextIndex = Math.min(this.state.files.length - 1, this._fileIndex + 1);
+        let prevIndex = Math.max(0, this._fileIndex - 1);
+        this._getImage(this.state.files[nextIndex].path);
+        this._getImage(this.state.files[prevIndex].path);
     }
 
     _renderSortingShortcuts() {
