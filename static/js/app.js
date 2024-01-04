@@ -105,6 +105,7 @@ export default class App {
         this.state.currentPath = data.canonical_path;
         this.state.folders = data.folders;
         this.state.files = data.files;
+        this._resort();
 
         if (this.state.files.length > 0) {
             this._fileIndex = this.state.files.findIndex(f => f.path === this.state.currentFile);
@@ -145,6 +146,12 @@ export default class App {
         }
         this.state.sortBy = sortBy;
         this.state.sortOrder = sortOrder;
+        this._resort();
+    }
+
+    _resort() {
+        const sortBy = this.state.sortBy;
+        const sortOrder = this.state.sortOrder;
 
         this.state.folders.sort((a, b) => {
             let aVal = a.name;
