@@ -12,8 +12,8 @@ import {html, toggleFullscreen} from './utils.js';
  * @typedef {{name: string, path: string, mtime: Number}} AppFile
  *
  * @typedef {{
- *  currentPath: null,
- *  currentFile: null,
+ *  currentPath: string|null,
+ *  currentFile: string|null,
  *  folders: AppFolder[],
  *  files: AppFile[],
  *  showHidden: boolean,
