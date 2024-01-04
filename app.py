@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, session, jsonify, request, send_file
+from flask import Flask, render_template, jsonify, request, send_file
 
 load_dotenv()
 
