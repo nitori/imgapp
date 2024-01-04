@@ -19,7 +19,15 @@
             </div>
             f: full screen
         </div>
-        <div id="folders"></div>
+        <div id="favs-folders">
+            <div id="favs">
+                {% for fav in favs %}
+                    <div><a href="#{{ fav.path }}" title="{{ fav.name }}"
+                            data-folder="{{ fav.path }}">{{ fav.name }}</a></div>
+                {% endfor %}
+            </div>
+            <div id="folders"></div>
+        </div>
         <div id="files"></div>
     </div>
     <div id="right">

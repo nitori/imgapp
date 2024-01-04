@@ -5,6 +5,9 @@
     --link-color-hover: #ccc;
     --link-text-decoration: none;
     --link-text-decoration-hover: underline;
+
+    --sidebar-width: 400px;
+    --favs-width: 25%;
 }
 
 *, *:before, *:after {
@@ -38,11 +41,15 @@ a:hover {
 }
 
 #left {
-    flex: 0 1 300px;
-    max-width: 300px;
-    width: 300px;
+    flex: 0 1 var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    width: var(--sidebar-width);
     height: 100vh;
-    overflow-y: auto;
+    white-space: nowrap;
+}
+
+#path {
+    overflow: hidden;
 }
 
 #shortcuts {
@@ -50,22 +57,70 @@ a:hover {
     font-size: 12px;
 }
 
-.red {
-    color: red;
-    --link-color: red;
-    --link-color-hover: red;
+#favs-folders {
+    border-bottom: 1px;
+    height: calc(50vh - 21px - 69px);
+    display: flex;
+}
+
+#favs {
+    flex: 0 1 var(--favs-width);
+    max-width: var(--favs-width);
+    width: var(--favs-width);
+    height: 100%;
+    overflow: auto;
 }
 
 #folders {
-    padding: 10px;
-    border-bottom: 1px;
-    background: #111;
-    white-space: nowrap;
+    flex: 1 0 0;
+    max-width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: rgba(255, 255, 255, .1);
 }
 
 #files {
-    padding: 10px;
+    white-space: nowrap;
+    height: 50vh;
+    overflow: auto;
 }
+
+#favs, #folders, #files {
+    /*padding: 5px;*/
+}
+
+#favs a,
+#folders a,
+#files a {
+    display: block;
+    padding: 5px 10px;
+}
+
+#favs::-webkit-scrollbar,
+#folders::-webkit-scrollbar,
+#files::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+#favs::-webkit-scrollbar-track,
+#folders::-webkit-scrollbar-track,
+#files::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, .1);
+}
+
+#favs::-webkit-scrollbar-thumb,
+#folders::-webkit-scrollbar-thumb,
+#files::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+#favs::-webkit-scrollbar-thumb:hover,
+#folders::-webkit-scrollbar-thumb:hover,
+#files::-webkit-scrollbar-thumb:hover {
+    background: #876565;
+}
+
 
 #right {
     flex: 1 0 0;
@@ -80,4 +135,14 @@ a:hover {
     height: 100vh;
     object-fit: scale-down;
     object-position: center;
+}
+
+.red {
+    color: red;
+    --link-color: red;
+    --link-color-hover: red;
+}
+
+a.red {
+    background: rgba(255, 255, 255, .05);
 }

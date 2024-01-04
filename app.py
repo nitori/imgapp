@@ -1,6 +1,10 @@
 from pathlib import Path
+import os
 
+from dotenv import load_dotenv
 from flask import Flask, render_template, session, jsonify, request, send_file
+
+load_dotenv()
 
 EXTENSIONS = {
     '.jpg': 'image/jpeg',
@@ -14,12 +18,40 @@ EXTENSIONS = {
 }
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'uriaeonsiarseuirnesuirseurasenurtine'
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+
+
+def listdrives():
+    if os.name != 'nt':
+        return
+    if hasattr(os, 'listdrives'):
+        yield from os.listdrives()
+    else:
+        for drive in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+            if Path(drive + ':\\').exists():
+                yield drive + ':\\'
 
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    folder_strings = os.environ['FAV_FOLDERS'].split(';')
+    folders = []
+
+    for drive in listdrives():
+        folders.append({
+            'name': drive,
+            'path': drive,
+        })
+
+    for folder in folder_strings:
+        folder = Path(folder).expanduser()
+        if folder.exists() and folder.is_dir():
+            folders.append({
+                'name': folder.name,
+                'path': str(folder),
+            })
+
+    return render_template('index.html', favs=folders)
 
 
 @app.route('/list')
@@ -27,11 +59,6 @@ def folder_list():
     path = Path(session['path'])
     folders = []
     files = []
-
-    folders.append({
-        'name': '..',
-        'path': str(path.parent),
-    })
 
     for entry in path.iterdir():
         if entry.name.startswith('.') and not session['show_hidden']:
@@ -57,6 +84,11 @@ def folder_list():
 
     # always sort folders by name (for now)
     folders.sort(key=_by_name)
+
+    folders.insert(0, {
+        'name': '..',
+        'path': str(path.parent),
+    })
 
     sort_by = session['sort_by']
     sort_order = session['sort_order']

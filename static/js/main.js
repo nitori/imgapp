@@ -24,6 +24,7 @@ let state = {
     show_hidden: false,
 };
 
+/** @type {string|null} */
 let currentFile = null;
 
 let sortState = {
@@ -33,10 +34,14 @@ let sortState = {
 let sortStateChanged = false;
 
 async function fetchState() {
-    let resp = await fetch('/list');
-    /** @type ApiList */
-    let data = await resp.json();
-
+    let data = {path: '', folders: [], files: [], show_hidden: false};
+    try {
+        let resp = await fetch('/list');
+        /** @type ApiList */
+        data = await resp.json();
+    } catch (e) {
+        console.error(e);
+    }
     let pathChanged = state.path !== data.path;
 
     state.path = data.path;
@@ -77,6 +82,7 @@ function updateState() {
         rebuildLists = false;
     } else {
         $path.text(state.path);
+        $path.attr('title', state.path);
         $folders.empty();
         $files.empty();
     }
@@ -84,9 +90,11 @@ function updateState() {
 
     if (currentFile === null) {
         $imageHolder.empty();
+        document.title = 'Image Viewer';
     } else {
         let imageUrl = new URL(`/get-file`, window.location.origin);
         imageUrl.searchParams.append('path', currentFile);
+        document.title = currentFile.split(/[\\/]/).pop();
 
         $imageHolder.empty();
         let $image;
@@ -104,17 +112,18 @@ function updateState() {
 
         $image.attr('src', imageUrl);
         $imageHolder.append($image);
+        focusCurrentFile();
     }
 
     if (rebuildLists) {
         state.folders.forEach(folder => {
-            $folders.append(`<div><a href="#${folder.path}" data-folder="${folder.path}">${folder.name}</a></div>`);
+            $folders.append(`<div><a href="#${folder.path}" title="${folder.name}" data-folder="${folder.path}">${folder.name}</a></div>`);
         });
     }
 
     if (rebuildLists) {
         state.files.forEach(file => {
-            $files.append(`<div><a href="#${file.path}" data-file="${file.path}" class="${
+            $files.append(`<div><a href="#${file.path}" title="${file.name}" data-file="${file.path}" class="${
                 file.path === currentFile ? 'red' : ''
             }">${file.name}</a></div>`);
         });
@@ -130,6 +139,17 @@ function updateState() {
     $sortingShortcuts.append(`<span class="${state.show_hidden ? 'red' : ''}">h: hidden</span><br>`);
 
     updateEvents();
+}
+
+function focusCurrentFile() {
+    if (currentFile === null) {
+        return;
+    }
+    let $el = $files.find(`*[data-file="${currentFile}"]`);
+    if ($el.length === 0) {
+        return;
+    }
+    $el[0].scrollIntoView({behavior: 'instant', block: 'nearest'});
 }
 
 function updateEvents() {
