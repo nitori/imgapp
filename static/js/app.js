@@ -52,7 +52,7 @@ export default class App {
         this._previousFolder = null;
 
         // path string -> Image object
-        /** @type {{[path: string]: {img: Image, ts: number}}} */
+        /** @type {Object.<string, {img: HTMLImageElement, ts: number}>} */
         this._fileCache = {};
 
         this.load();
@@ -240,24 +240,10 @@ export default class App {
         let $media;
 
         if (this.state.currentFile.match(/\.(mp4|webm)$/)) {
-            $media = $(html`
-                <video controls autoplay loop>
-                    <source src="${this._getVideo(this.state.currentFile)}">
-                </video>`);
+            $media = $(this._getVideo(this.state.currentFile));
         } else {
             $media = $(this._getImage(this.state.currentFile));
-
-            // keep only 10 images in cache.
-            let keys = Object.keys(this._fileCache);
-            if (keys.length > MAX_CACHED_IMAGES) {
-                let oldestKey = keys.reduce((a, b) => {
-                    if (this._fileCache[a].ts < this._fileCache[b].ts) {
-                        return a;
-                    }
-                    return b;
-                });
-                delete this._fileCache[oldestKey];
-            }
+            this._cleanupCache();
         }
 
         this.$imageHolder.append($media);
@@ -267,7 +253,13 @@ export default class App {
     _getVideo(file) {
         let url = new URL(`/get-file`, window.location.origin);
         url.searchParams.append('path', file);
-        return url.toString();
+
+        let video = document.createElement('video');
+        video.controls = true;
+        video.autoplay = true;
+        video.loop = true;
+        video.src = url.toString();
+        return video;
     }
 
     _getImage(file) {
@@ -279,12 +271,25 @@ export default class App {
                 img: new Image(),
                 ts: Date.now() / 1000.0,
             };
-            this._fileCache[file].img.src = url;
+            this._fileCache[file].img.src = url.toString();
         } else {
             this._fileCache[file].ts = Date.now() / 1000.0;
         }
-
         return this._fileCache[file].img;
+    }
+
+    _cleanupCache() {
+        // keep only 10 images in cache.
+        let keys = Object.keys(this._fileCache);
+        if (keys.length > MAX_CACHED_IMAGES) {
+            let oldestKey = keys.reduce((a, b) => {
+                if (this._fileCache[a].ts < this._fileCache[b].ts) {
+                    return a;
+                }
+                return b;
+            });
+            delete this._fileCache[oldestKey];
+        }
     }
 
     _preloadNextAndPrevious() {
