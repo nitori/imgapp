@@ -94,7 +94,7 @@ function updateState() {
     } else {
         let imageUrl = new URL(`/get-file`, window.location.origin);
         imageUrl.searchParams.append('path', currentFile);
-        document.title = currentFile.split(/[\\/]/).pop();
+        document.title = currentFile.split(/\//).pop();
 
         $imageHolder.empty();
         let $image;

@@ -40,7 +40,7 @@ def index():
     for drive in listdrives():
         folders.append({
             'name': drive,
-            'path': drive,
+            'path': drive.replace('\\', '/'),
         })
 
     for folder in folder_strings:
@@ -48,7 +48,7 @@ def index():
         if folder.exists() and folder.is_dir():
             folders.append({
                 'name': folder.name,
-                'path': str(folder),
+                'path': str(folder).replace('\\', '/'),
             })
 
     return render_template('index.html', favs=folders)
@@ -67,12 +67,12 @@ def folder_list():
         if entry.is_dir():
             folders.append({
                 'name': entry.name,
-                'path': str(entry),
+                'path': str(entry).replace('\\', '/'),
             })
         elif entry.suffix in EXTENSIONS:
             files.append({
                 'name': entry.name,
-                'path': str(entry),
+                'path': str(entry).replace('\\', '/'),
                 'mtime': entry.stat().st_mtime,
             })
 
@@ -87,7 +87,7 @@ def folder_list():
 
     folders.insert(0, {
         'name': '..',
-        'path': str(path.parent),
+        'path': str(path.parent).replace('\\', '/'),
     })
 
     sort_by = session['sort_by']
@@ -99,12 +99,17 @@ def folder_list():
     }
     files.sort(key=sort_func_map[sort_by], reverse=sort_order == 'desc')
 
-    return jsonify(path=str(path), folders=folders, files=files, show_hidden=session['show_hidden'])
+    return jsonify(
+        path=str(path).replace('\\', '/'),
+        folders=folders,
+        files=files,
+        show_hidden=session['show_hidden']
+    )
 
 
 @app.route('/change-folder', methods=['POST'])
 def change_folder():
-    session['path'] = str(Path(request.form['path']).resolve())
+    session['path'] = str(Path(request.form['path']).resolve()).replace('\\', '/')
     return jsonify(path=session['path'])
 
 
@@ -162,7 +167,7 @@ def before_request():
         path = Path.home() / 'Pictures'
         if not path.exists() or not path.is_dir():
             path = Path.home()
-        session['path'] = str(path)
+        session['path'] = str(path).replace('\\', '/')
 
     if 'show_hidden' not in session:
         session['show_hidden'] = False
