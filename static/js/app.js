@@ -112,7 +112,8 @@ export default class App {
         if (this.state.files.length > 0) {
             this._fileIndex = this.state.files.findIndex(f => f.path === this.state.currentFile);
             if (this._fileIndex === -1) {
-                this.state.currentFile = this.state.files[0].path;
+                this._fileIndex = 0;
+                this.state.currentFile = this.state.files[this._fileIndex].path;
             }
         } else {
             this.state.currentFile = null;
