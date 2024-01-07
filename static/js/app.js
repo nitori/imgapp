@@ -199,7 +199,7 @@ export default class App {
                 if (!this.state.showHidden && f.name.startsWith('.') && f.name !== '..') {
                     return;
                 }
-                this.$folders.append(`<div><a href="#${f.path}" class="${
+                this.$folders.append(html`<div><a href="#${f.path}" class="${
                     this._previousFolder === f.path ? 'previous' : ''
                 }" data-folder="${f.path}">${f.name}</a></div>`);
             });
@@ -209,7 +209,7 @@ export default class App {
                 if (!this.state.showHidden && f.name.startsWith('.')) {
                     return;
                 }
-                this.$files.append(`<div><a href="#${f.path}" class="${
+                this.$files.append(html`<div><a href="#${f.path}" class="${
                     this.state.currentFile === f.path ? 'active' : ''
                 }" data-file="${f.path}">${f.name}</a></div>`);
             });
