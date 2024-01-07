@@ -23,8 +23,10 @@ export function toggleFullscreen(elem) {
     if (!document.fullscreenElement) {
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
+            document.documentElement.classList.add('fullscreen');
         }
     } else {
+        document.documentElement.classList.remove('fullscreen');
         document.exitFullscreen();
     }
 }

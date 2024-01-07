@@ -23,6 +23,7 @@ import {html, toggleFullscreen} from './utils.js';
  */
 
 const MAX_CACHED_IMAGES = 50;
+const HIDE_CURSOR_TIMEOUT = 5000;
 
 /** @type {AppState} */
 const defaultState = {
@@ -401,6 +402,18 @@ export default class App {
             } else if (ev.originalEvent.deltaY > 0) {
                 this.nextFile();
             }
+        });
+
+        let hideCursorTimer = null;
+        this.$imageHolder.off('mousemove').on('mousemove', ev => {
+            if (hideCursorTimer !== null) {
+                clearTimeout(hideCursorTimer);
+            }
+
+            this.$imageHolder.removeClass('hide-cursor');
+            hideCursorTimer = setTimeout(() => {
+                this.$imageHolder.addClass('hide-cursor');
+            }, HIDE_CURSOR_TIMEOUT);
         });
     }
 }

@@ -137,6 +137,10 @@ a:hover {
     object-position: center;
 }
 
+.fullscreen #image.hide-cursor {
+    cursor: none;
+}
+
 .active {
     color: red;
     --link-color: red;
