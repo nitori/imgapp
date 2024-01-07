@@ -1,3 +1,18 @@
+/*
+This file is part of imgapp.
+
+imgapp is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+imgapp is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+imgapp. If not, see <https://www.gnu.org/licenses/>.
+*/
 import $ from './jquery.js';
 import {html, toggleFullscreen} from './utils.js';
 
@@ -200,9 +215,10 @@ export default class App {
                 if (!this.state.showHidden && f.name.startsWith('.') && f.name !== '..') {
                     return;
                 }
-                this.$folders.append(html`<div><a href="#${f.path}" class="${
-                    this._previousFolder === f.path ? 'previous' : ''
-                }" data-folder="${f.path}">${f.name}</a></div>`);
+                this.$folders.append(html`
+                    <div><a href="#${f.path}" class="${
+                            this._previousFolder === f.path ? 'previous' : ''
+                    }" data-folder="${f.path}">${f.name}</a></div>`);
             });
 
             this.$files.empty();
@@ -210,9 +226,10 @@ export default class App {
                 if (!this.state.showHidden && f.name.startsWith('.')) {
                     return;
                 }
-                this.$files.append(html`<div><a href="#${f.path}" class="${
-                    this.state.currentFile === f.path ? 'active' : ''
-                }" data-file="${f.path}">${f.name}</a></div>`);
+                this.$files.append(html`
+                    <div><a href="#${f.path}" class="${
+                            this.state.currentFile === f.path ? 'active' : ''
+                    }" data-file="${f.path}">${f.name}</a></div>`);
             });
         } else {
             this.$files.find('a').removeClass('active');
