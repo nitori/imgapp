@@ -233,10 +233,10 @@ export default class App {
             });
         } else {
             this.$files.find('a').removeClass('active');
-            this.$files.find(`a[data-file="${this.state.currentFile}"]`).addClass('active');
+            this.$files.find(`a[data-file="${CSS.escape(this.state.currentFile)}"]`).addClass('active');
 
             this.$folders.find('a').removeClass('previous');
-            this.$folders.find(`a[data-folder="${this._previousFolder}"]`).addClass('previous');
+            this.$folders.find(`a[data-folder="${CSS.escape(this._previousFolder)}"]`).addClass('previous');
         }
 
         this._setupEvents();
@@ -333,7 +333,7 @@ export default class App {
         if (this.state.currentFile === null) {
             return;
         }
-        let $el = this.$files.find(`*[data-file="${this.state.currentFile}"]`);
+        let $el = this.$files.find(`*[data-file="${CSS.escape(this.state.currentFile)}"]`);
         if ($el.length === 0) {
             return;
         }
@@ -344,7 +344,7 @@ export default class App {
         if (this._previousFolder === null) {
             return;
         }
-        let $el = this.$folders.find(`*[data-folder="${this._previousFolder}"]`);
+        let $el = this.$folders.find(`*[data-folder="${CSS.escape(this._previousFolder)}"]`);
         if ($el.length === 0) {
             return;
         }
