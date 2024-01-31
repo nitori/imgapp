@@ -174,14 +174,12 @@ export default class App {
         this.state.folders.sort((a, b) => {
             let aVal = a.name;
             let bVal = b.name;
-            aVal = aVal.toLowerCase().replace(/\[]\(\)\{}<>/g, '');
-            bVal = bVal.toLowerCase().replace(/\[]\(\)\{}<>/g, '');
-            if (aVal === bVal) {
-                return 0;
-            }
-            if (aVal < bVal) {
-                return -1;
-            }
+            aVal = aVal.toLowerCase().replace(/[\[\]\(\)\{}<>]+/g, '');
+            bVal = bVal.toLowerCase().replace(/[\[\]\(\)\{}<>]+/g, '');
+            if (aVal === '..') return -1;
+            if (bVal === '..') return 1;
+            if (aVal === bVal) return 0;
+            if (aVal < bVal) return -1;
             return 1;
         });
 
@@ -189,8 +187,8 @@ export default class App {
             let aVal = a[sortBy];
             let bVal = b[sortBy];
             if (sortBy === 'name') {
-                aVal = aVal.toLowerCase().replace(/\[]\(\)\{}<>/g, '');
-                bVal = bVal.toLowerCase().replace(/\[]\(\)\{}<>/g, '');
+                aVal = aVal.toLowerCase().replace(/[\[\]\(\)\{}<>]+/g, '');
+                bVal = bVal.toLowerCase().replace(/[\[\]\(\)\{}<>]+/g, '');
             }
             if (aVal === bVal) {
                 return 0;
