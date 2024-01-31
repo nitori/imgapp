@@ -46,6 +46,8 @@ a:hover {
     width: var(--sidebar-width);
     height: 100vh;
     white-space: nowrap;
+    font-size: 14px;
+    line-height: 1;
 }
 
 #path {
