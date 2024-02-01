@@ -61,7 +61,7 @@ a:hover {
 
 #favs-folders {
     border-bottom: 1px;
-    height: calc(50vh - 21px - 69px);
+    height: calc(50vh - 14px - 60px);
     display: flex;
 }
 
@@ -85,6 +85,16 @@ a:hover {
     white-space: nowrap;
     height: 50vh;
     overflow: auto;
+}
+
+#folders, #files {
+    white-space: normal;
+    word-break: break-all;
+}
+
+#folders > div:nth-child(2n),
+#files > div:nth-child(2n) {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 #favs, #folders, #files {
@@ -150,7 +160,7 @@ a:hover {
 }
 
 a.active {
-    background: rgba(255, 255, 255, .05);
+    background: rgba(255, 0, 0, .05);
 }
 
 .previous {
