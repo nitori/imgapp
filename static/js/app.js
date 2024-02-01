@@ -335,6 +335,11 @@ export default class App {
         if ($el.length === 0) {
             return;
         }
+
+        let $parent = $el.closest('#files');
+        if (this._posWithin($el[0], $parent[0])) {
+            return
+        }
         $el[0].scrollIntoView({behavior: 'instant', block: 'center'});
     }
 
@@ -346,7 +351,18 @@ export default class App {
         if ($el.length === 0) {
             return;
         }
+
+        let $parent = $el.closest('#folders');
+        if (this._posWithin($el[0], $parent[0])) {
+            return
+        }
         $el[0].scrollIntoView({behavior: 'instant', block: 'center'});
+    }
+
+    _posWithin(el, parentEl) {
+        let rect = el.getBoundingClientRect();
+        let parentRect = parentEl.getBoundingClientRect();
+        return rect.top >= parentRect.top && rect.bottom <= parentRect.bottom;
     }
 
     _setupEvents() {
