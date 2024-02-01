@@ -335,7 +335,7 @@ export default class App {
         if ($el.length === 0) {
             return;
         }
-        $el[0].scrollIntoView({behavior: 'instant', block: 'nearest'});
+        $el[0].scrollIntoView({behavior: 'instant', block: 'center'});
     }
 
     _focusPreviousFolder() {
@@ -346,7 +346,7 @@ export default class App {
         if ($el.length === 0) {
             return;
         }
-        $el[0].scrollIntoView({behavior: 'instant', block: 'nearest'});
+        $el[0].scrollIntoView({behavior: 'instant', block: 'center'});
     }
 
     _setupEvents() {
