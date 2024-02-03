@@ -63,6 +63,7 @@ export default class App {
         this.$right = $('#right');
         this.$imageHolder = $('#image');
         this.$sortingShortcuts = $('#sorting-shortcuts');
+        this.$meta = $('#meta');
 
         this._listRebuildRequired = true;
         this._previousFolder = null;
@@ -249,6 +250,7 @@ export default class App {
         if (this.state.currentFile === null) {
             this.$imageHolder.empty();
             document.title = 'Image Viewer';
+            this.$meta.empty();
             return;
         }
         document.title = this.state.currentFile.split(/\//).pop();
@@ -264,6 +266,7 @@ export default class App {
         }
 
         this.$imageHolder.append($media);
+        this.$meta.text(`${this._fileIndex + 1}/${this.state.files.length}`);
         this._preloadNextAndPrevious();
     }
 

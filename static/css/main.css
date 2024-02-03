@@ -54,9 +54,24 @@ a:hover {
     overflow: hidden;
 }
 
+#shortcuts-meta {
+    display: flex;
+}
+
 #shortcuts {
+    flex: 0 1 100px;
+    max-width: 100px;
+    width: 100px;
     color: rgba(255, 255, 255, .7);
     font-size: 12px;
+}
+
+#meta {
+    flex: 1 0 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 5px;
 }
 
 #favs-folders {
