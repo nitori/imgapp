@@ -127,11 +127,11 @@ export default class App {
             return;
         }
 
-        if (this.state.folderHash !== data.hash) {
-            this._fetchList(this.state.currentPath, true)
-                .then(schedule)
-                .catch(schedule);
-        } else {
+        try {
+            if (this.state.folderHash !== data.hash) {
+                await this._fetchList(this.state.currentPath, true);
+            }
+        } finally {
             schedule();
         }
     }
