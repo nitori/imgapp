@@ -19,7 +19,12 @@ import {html, toggleFullscreen} from './utils.js';
 /**
  * @typedef {{name: string, path: string}} ResponseFolder
  * @typedef {{name: string, path: string, mtime: Number}} ResponseFile
- * @typedef {{canonical_path: string, folders: ResponseFolder[], files: ResponseFile[], show_hidden: boolean}} ResponseList
+ * @typedef {{
+ *  canonical_path: string,
+ *  folders: ResponseFolder[],
+ *  files: ResponseFile[],
+ *  hash: string
+ * }} ResponseList
  */
 
 /**
@@ -27,6 +32,7 @@ import {html, toggleFullscreen} from './utils.js';
  * @typedef {{name: string, path: string, mtime: Number}} AppFile
  *
  * @typedef {{
+ *  folderHash: string|null,
  *  currentPath: string|null,
  *  currentFile: string|null,
  *  folders: AppFolder[],
@@ -42,6 +48,7 @@ const HIDE_CURSOR_TIMEOUT = 5000;
 
 /** @type {AppState} */
 const defaultState = {
+    folderHash: null,
     currentPath: null,
     currentFile: null,
 
@@ -74,6 +81,7 @@ export default class App {
 
         this.load();
         this._fetchList(this.state.currentPath, true);
+        this._startPolling();
     }
 
     load() {
@@ -102,6 +110,32 @@ export default class App {
         localStorage.setItem('imageapp-state', JSON.stringify(this.state));
     }
 
+    async _startPolling() {
+        const schedule = () => window.setTimeout(() => this._startPolling(), 10000);
+        if (this.state.currentPath === null) {
+            schedule();
+            return;
+        }
+
+        let data;
+        try {
+            let resp = await fetch('/folder-hash?' + $.param({path: this.state.currentPath}));
+            data = await resp.json();
+        } catch (e) {
+            console.error(e);
+            schedule();
+            return;
+        }
+
+        if (this.state.folderHash !== data.hash) {
+            this._fetchList(this.state.currentPath, true)
+                .then(schedule)
+                .catch(schedule);
+        } else {
+            schedule();
+        }
+    }
+
     /**
      * @param path {string|null}
      * @param [forceRebuild] {boolean}
@@ -123,6 +157,7 @@ export default class App {
         this.state.currentPath = data.canonical_path;
         this.state.folders = data.folders;
         this.state.files = data.files;
+        this.state.folderHash = data.hash;
         this._resort();
 
         if (this.state.files.length > 0) {

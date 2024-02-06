@@ -13,6 +13,7 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 imgapp. If not, see <https://www.gnu.org/licenses/>.
 """
+import hashlib
 from pathlib import Path
 import os
 
@@ -36,6 +37,12 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
 
+class HttpError(Exception):
+    def __init__(self, message: str, status_code: int = 500):
+        super().__init__(message)
+        self.status_code = status_code
+
+
 def default_path() -> Path:
     path = Path.home() / 'Pictures'
     if not path.exists() or not path.is_dir():
@@ -52,6 +59,29 @@ def listdrives():
         for drive in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
             if Path(drive + ':\\').exists():
                 yield drive + ':\\'
+
+
+def resolve_path(path_str: str) -> Path:
+    if path_str:
+        path = Path(path_str)
+    else:
+        path = default_path()
+
+    if not path.exists() or not path.is_dir():
+        raise HttpError('Path does not exist', 404)
+
+    try:
+        return path.resolve(strict=True)
+    except (FileNotFoundError, RuntimeError):
+        raise HttpError('Path does not exist', 404)
+
+
+def calculate_folder_hash(path: Path) -> str:
+    digest = hashlib.sha256()
+    for item in sorted(path.iterdir(), key=lambda p: p.name):
+        digest.update(item.name.encode('utf-8'))
+        digest.update(str(item.stat().st_mtime).encode('utf-8'))
+    return digest.hexdigest()
 
 
 @app.route('/')
@@ -79,18 +109,10 @@ def index():
 @app.route('/list')
 def folder_list():
     path_str = request.args.get('path', '')
-    if path_str:
-        path = Path(path_str)
-    else:
-        path = default_path()
-
-    if not path.exists() or not path.is_dir():
-        return jsonify(error='Path does not exist'), 404
-
     try:
-        path = path.resolve(strict=True)
-    except (FileNotFoundError, RuntimeError):
-        return jsonify(error='Path does not exist'), 404
+        path = resolve_path(path_str)
+    except HttpError as e:
+        return jsonify(error=str(e)), e.status_code
 
     folders = []
     files = []
@@ -117,6 +139,7 @@ def folder_list():
         canonical_path=str(path).replace('\\', '/'),
         folders=folders,
         files=files,
+        hash=calculate_folder_hash(path),
     )
 
 
@@ -133,6 +156,16 @@ def get_file():
         return jsonify(error='File type not supported'), 400
 
     return send_file(path, mimetype=EXTENSIONS[path.suffix], max_age=3600)
+
+
+@app.route('/folder-hash', methods=['GET'])
+def folder_hash():
+    path_str = request.args.get('path', '')
+    try:
+        path = resolve_path(path_str)
+    except HttpError as e:
+        return jsonify(error=str(e)), e.status_code
+    return jsonify(hash=calculate_folder_hash(path))
 
 
 if __name__ == '__main__':
