@@ -71,9 +71,12 @@ def resolve_path(path_str: str) -> Path:
         raise HttpError('Path does not exist', 404)
 
     try:
-        return path.resolve(strict=True)
+        path.resolve(strict=True)
     except (FileNotFoundError, RuntimeError):
         raise HttpError('Path does not exist', 404)
+
+    # return original path, because we don't want to follow symlinks
+    return path
 
 
 def calculate_folder_hash(path: Path) -> str:
