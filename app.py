@@ -130,12 +130,14 @@ def folder_list():
             folders.append({
                 'name': entry.name,
                 'path': str(entry).replace('\\', '/'),
+                'symlink': entry.is_symlink(),
             })
         elif entry.suffix in EXTENSIONS:
             files.append({
                 'name': entry.name,
                 'path': str(entry).replace('\\', '/'),
                 'mtime': entry.stat().st_mtime,
+                'symlink': entry.is_symlink(),
             })
 
     return jsonify(

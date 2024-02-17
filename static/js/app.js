@@ -28,8 +28,8 @@ import {html, toggleFullscreen} from './utils.js';
  */
 
 /**
- * @typedef {{name: string, path: string}} AppFolder
- * @typedef {{name: string, path: string, mtime: Number}} AppFile
+ * @typedef {{name: string, path: string, symlink: Boolean}} AppFolder
+ * @typedef {{name: string, path: string, symlink: Boolean, mtime: Number}} AppFile
  *
  * @typedef {{
  *  folderHash: string|null,
@@ -45,6 +45,11 @@ import {html, toggleFullscreen} from './utils.js';
 
 const MAX_CACHED_IMAGES = 50;
 const HIDE_CURSOR_TIMEOUT = 5000;
+const SYMLINK_ICON = `
+<svg xmlns="http://www.w3.org/2000/svg" style="height: 1em; width: auto; vertical-align: top; margin-right:.25em;" width="512" height="512" viewBox="0 0 512 512">
+    <!--!Font Awesome Pro 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2024 Fonticons, Inc.-->
+    <path fill="currentColor" d="M320 0H288V64h32 82.7L201.4 265.4 178.7 288 224 333.3l22.6-22.6L448 109.3V192v32h64V192 32 0H480 320zM32 32H0V64 480v32H32 456h32V480 352 320H424v32 96H64V96h96 32V32H160 32z"/>
+</svg>`;
 
 /** @type {AppState} */
 const defaultState = {
@@ -252,7 +257,7 @@ export default class App {
                 this.$folders.append(html`
                     <div><a href="#${f.path}" class="${
                             this._previousFolder === f.path ? 'previous' : ''
-                    }" data-folder="${f.path}">${f.name}</a></div>`);
+                    }" data-folder="${f.path}">$${f.symlink ? SYMLINK_ICON : ''}${f.name}</a></div>`);
             });
 
             this.$files.empty();
@@ -263,7 +268,7 @@ export default class App {
                 this.$files.append(html`
                     <div><a href="#${f.path}" class="${
                             this.state.currentFile === f.path ? 'active' : ''
-                    }" data-file="${f.path}">${f.name}</a></div>`);
+                    }" data-file="${f.path}">$${f.symlink ? SYMLINK_ICON : ''}${f.name}</a></div>`);
             });
         } else {
             this.$files.find('a').removeClass('active');
