@@ -328,6 +328,7 @@ export default class App {
             this.$meta.find('.resolution').text(`${video.videoWidth}x${video.videoHeight}`);
         };
         video.src = url.toString();
+        video.classList.add('media-item');
         return video;
     }
 
@@ -349,6 +350,7 @@ export default class App {
                 this.$meta.find('.resolution').text(`${width}x${height}`);
             };
             this._fileCache[file].img.src = url.toString();
+            this._fileCache[file].img.classList.add('media-item');
         } else {
             this._fileCache[file].ts = Date.now() / 1000.0;
         }
@@ -455,16 +457,24 @@ export default class App {
                 this.prevFile();
             } else if (ev.key === 'Home') {
                 ev.preventDefault();
-                this._fileIndex = 0;
-                this.state.currentFile = this.state.files[this._fileIndex].path;
-                this.save();
-                this._render();
+                if (this._isCover()) {
+                    this.setObjectPosition(0, 0);
+                } else {
+                    this._fileIndex = 0;
+                    this.state.currentFile = this.state.files[this._fileIndex].path;
+                    this.save();
+                    this._render();
+                }
             } else if (ev.key === 'End') {
                 ev.preventDefault();
-                this._fileIndex = this.state.files.length - 1;
-                this.state.currentFile = this.state.files[this._fileIndex].path;
-                this.save();
-                this._render();
+                if (this._isCover()) {
+                    this.setObjectPosition(100, 100);
+                } else {
+                    this._fileIndex = this.state.files.length - 1;
+                    this.state.currentFile = this.state.files[this._fileIndex].path;
+                    this.save();
+                    this._render();
+                }
             } else if (ev.key === 'f') {
                 ev.preventDefault();
                 toggleFullscreen(this.$imageHolder[0]);
@@ -489,14 +499,30 @@ export default class App {
                 this.changeSort('mtime', this.state.sortOrder);
                 this._listRebuildRequired = true;
                 this._render();
+            } else if (ev.key === 'b') {
+                ev.preventDefault();
+                if (this.$imageHolder.hasClass('cover')) {
+                    this.$imageHolder.removeClass('cover');
+                    this.$imageHolder.find('.media-item').css('object-position', '');
+                } else {
+                    this.$imageHolder.addClass('cover');
+                }
             }
         });
 
         this.$imageHolder.off('wheel').on('wheel', ev => {
             if (ev.originalEvent.deltaY < 0) {
-                this.prevFile();
+                if (this._isCover()) {
+                    this.moveMediaUp();
+                } else {
+                    this.prevFile();
+                }
             } else if (ev.originalEvent.deltaY > 0) {
-                this.nextFile();
+                if (this._isCover()) {
+                    this.moveMediaDown();
+                } else {
+                    this.nextFile();
+                }
             }
         });
 
@@ -511,5 +537,55 @@ export default class App {
                 this.$imageHolder.addClass('hide-cursor');
             }, HIDE_CURSOR_TIMEOUT);
         });
+    }
+
+
+    getCurrentObjectPosition() {
+        const $mediaItem = this.$imageHolder.find('.media-item');
+        const pos = ($mediaItem.css('object-position') || '50% 50%').trim();
+        const parts = pos.split(/\s+/);
+        if (parts.length !== 2) {
+            return [50, 50];
+        }
+        let x = parseFloat(parts[0]);
+        let y = parseFloat(parts[1]);
+
+        if (
+            !isNaN(x) && !isNaN(y)
+            && parts[0].endsWith('%') && parts[1].endsWith('%')
+        ) {
+            return [(x + y) / 2, (x + y) / 2];
+        }
+        return [50, 50];
+    }
+
+    setObjectPosition(x, y) {
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        const $mediaItem = this.$imageHolder.find('.media-item');
+        $mediaItem.css('object-position', `${x}% ${y}%`);
+    }
+
+    _calcStep() {
+        const $mediaItem = this.$imageHolder.find('.media-item');
+        const width = $mediaItem[0].naturalWidth || $mediaItem[0].videoWidth;
+        const height = $mediaItem[0].naturalHeight || $mediaItem[0].videoHeight;
+        return Math.max(1, Math.min(50, width / height * 10));
+    }
+
+    moveMediaUp() {
+        let [x, y] = this.getCurrentObjectPosition();
+        let step = this._calcStep();
+        this.setObjectPosition(x - step, y - step);
+    }
+
+    moveMediaDown() {
+        let [x, y] = this.getCurrentObjectPosition();
+        let step = this._calcStep();
+        this.setObjectPosition(x + step, y + step);
+    }
+
+    _isCover() {
+        return this.$imageHolder.hasClass('cover');
     }
 }
