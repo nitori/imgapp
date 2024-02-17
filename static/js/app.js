@@ -306,7 +306,11 @@ export default class App {
         }
 
         this.$imageHolder.append($media);
-        this.$meta.text(`${this._fileIndex + 1}/${this.state.files.length}`);
+        this.$meta.html(`
+            <span class="resolution">0x0</span>
+            <span>&nbsp;-&nbsp;</span>
+            <span>${this._fileIndex + 1}/${this.state.files.length}</span>
+        `);
         this._preloadNextAndPrevious();
     }
 
@@ -318,6 +322,11 @@ export default class App {
         video.controls = true;
         video.autoplay = true;
         video.loop = true;
+        video.onloadedmetadata = () => {
+            video.width = video.videoWidth;
+            video.height = video.videoHeight;
+            this.$meta.find('.resolution').text(`${video.videoWidth}x${video.videoHeight}`);
+        };
         video.src = url.toString();
         return video;
     }
@@ -330,6 +339,14 @@ export default class App {
             this._fileCache[file] = {
                 img: new Image(),
                 ts: Date.now() / 1000.0,
+            };
+            this._fileCache[file].img.onload = (im) => {
+                let image = im.currentTarget;
+                let width = image.naturalWidth;
+                let height = image.naturalHeight;
+                this._fileCache[file].img.width = width;
+                this._fileCache[file].img.height = height;
+                this.$meta.find('.resolution').text(`${width}x${height}`);
             };
             this._fileCache[file].img.src = url.toString();
         } else {
@@ -358,8 +375,12 @@ export default class App {
         }
         let nextIndex = Math.min(this.state.files.length - 1, this._fileIndex + 1);
         let prevIndex = Math.max(0, this._fileIndex - 1);
-        this._getImage(this.state.files[nextIndex].path);
-        this._getImage(this.state.files[prevIndex].path);
+        if (!this.state.files[nextIndex].path.match(/\.(mp4|webm)$/)) {
+            this._getImage(this.state.files[nextIndex].path);
+        }
+        if (!this.state.files[prevIndex].path.match(/\.(mp4|webm)$/)) {
+            this._getImage(this.state.files[prevIndex].path);
+        }
     }
 
     _renderSortingShortcuts() {
