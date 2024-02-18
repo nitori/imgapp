@@ -306,12 +306,21 @@ export default class App {
         }
 
         this.$imageHolder.append($media);
-        this.$meta.html(`
-            <span class="resolution">0x0</span>
-            <span>&nbsp;-&nbsp;</span>
-            <span>${this._fileIndex + 1}/${this.state.files.length}</span>
-        `);
         this._preloadNextAndPrevious();
+
+        const updateMeta = () => {
+            let {width, height} = this._getResolution();
+            if (width > 0 && height > 0) {
+                this.$meta.html(`
+                    <span class="resolution">${width}x${height}</span>
+                    <span>&nbsp;-&nbsp;</span>
+                    <span>${this._fileIndex + 1}/${this.state.files.length}</span>
+                `);
+            } else {
+                window.requestAnimationFrame(updateMeta);
+            }
+        }
+        window.requestAnimationFrame(updateMeta);
     }
 
     _getVideo(file) {
@@ -322,11 +331,6 @@ export default class App {
         video.controls = true;
         video.autoplay = true;
         video.loop = true;
-        video.onloadedmetadata = () => {
-            video.width = video.videoWidth;
-            video.height = video.videoHeight;
-            this.$meta.find('.resolution').text(`${video.videoWidth}x${video.videoHeight}`);
-        };
         video.src = url.toString();
         video.classList.add('media-item');
         return video;
@@ -341,20 +345,19 @@ export default class App {
                 img: new Image(),
                 ts: Date.now() / 1000.0,
             };
-            this._fileCache[file].img.onload = (im) => {
-                let image = im.currentTarget;
-                let width = image.naturalWidth;
-                let height = image.naturalHeight;
-                this._fileCache[file].img.width = width;
-                this._fileCache[file].img.height = height;
-                this.$meta.find('.resolution').text(`${width}x${height}`);
-            };
             this._fileCache[file].img.src = url.toString();
             this._fileCache[file].img.classList.add('media-item');
         } else {
             this._fileCache[file].ts = Date.now() / 1000.0;
         }
         return this._fileCache[file].img;
+    }
+
+    _getResolution() {
+        const $media = this.$imageHolder.find('.media-item');
+        let width = $media[0].naturalWidth || $media[0].videoWidth || 0;
+        let height = $media[0].naturalHeight || $media[0].videoHeight || 0;
+        return {width, height};
     }
 
     _cleanupCache() {
