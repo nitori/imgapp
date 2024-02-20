@@ -163,8 +163,11 @@ a:hover {
     object-position: center;
 }
 
-#image.cover .media-item {
+#image.object-fit-cover .media-item {
     object-fit: cover;
+}
+#image.object-fit-none .media-item {
+    object-fit: none;
 }
 
 .fullscreen #image.hide-cursor {

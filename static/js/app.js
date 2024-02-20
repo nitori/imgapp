@@ -460,7 +460,7 @@ export default class App {
                 this.prevFile();
             } else if (ev.key === 'Home') {
                 ev.preventDefault();
-                if (this._isCover()) {
+                if (this._isObjectFitCover() || this._isObjectFitNone()) {
                     this.setObjectPosition(0, 0);
                 } else {
                     this._fileIndex = 0;
@@ -470,7 +470,7 @@ export default class App {
                 }
             } else if (ev.key === 'End') {
                 ev.preventDefault();
-                if (this._isCover()) {
+                if (this._isObjectFitCover() || this._isObjectFitNone()) {
                     this.setObjectPosition(100, 100);
                 } else {
                     this._fileIndex = this.state.files.length - 1;
@@ -504,24 +504,28 @@ export default class App {
                 this._render();
             } else if (ev.key === 'b') {
                 ev.preventDefault();
-                if (this.$imageHolder.hasClass('cover')) {
-                    this.$imageHolder.removeClass('cover');
+                if (this.$imageHolder.hasClass('object-fit-cover')) {
+                    this.$imageHolder.removeClass('object-fit-cover');
+                    this.$imageHolder.addClass('object-fit-none');
+                } else if (this.$imageHolder.hasClass('object-fit-none')) {
+                    this.$imageHolder.removeClass('object-fit-cover');
+                    this.$imageHolder.removeClass('object-fit-none');
                     this.$imageHolder.find('.media-item').css('object-position', '');
                 } else {
-                    this.$imageHolder.addClass('cover');
+                    this.$imageHolder.addClass('object-fit-cover');
                 }
             }
         });
 
         this.$imageHolder.off('wheel').on('wheel', ev => {
             if (ev.originalEvent.deltaY < 0) {
-                if (this._isCover()) {
+                if (this._isObjectFitCover() || this._isObjectFitNone()) {
                     this.moveMediaUp();
                 } else {
                     this.prevFile();
                 }
             } else if (ev.originalEvent.deltaY > 0) {
-                if (this._isCover()) {
+                if (this._isObjectFitCover() || this._isObjectFitNone()) {
                     this.moveMediaDown();
                 } else {
                     this.nextFile();
@@ -557,7 +561,7 @@ export default class App {
             !isNaN(x) && !isNaN(y)
             && parts[0].endsWith('%') && parts[1].endsWith('%')
         ) {
-            return [(x + y) / 2, (x + y) / 2];
+            return [x, y];
         }
         return [50, 50];
     }
@@ -565,14 +569,34 @@ export default class App {
     setObjectPosition(x, y) {
         x = Math.max(0, Math.min(100, x));
         y = Math.max(0, Math.min(100, y));
+        if (this._direction() == 'up') {
+            x = 50;
+        } else {
+            y = 50;
+        }
         const $mediaItem = this.$imageHolder.find('.media-item');
         $mediaItem.css('object-position', `${x}% ${y}%`);
     }
-
-    _calcStep() {
+    
+    _resolution() {
         const $mediaItem = this.$imageHolder.find('.media-item');
         const width = $mediaItem[0].naturalWidth || $mediaItem[0].videoWidth;
         const height = $mediaItem[0].naturalHeight || $mediaItem[0].videoHeight;
+        return {width, height};
+    }
+    
+    _direction() {
+        let {width, height} = this._resolution();
+        let cWidth = this.$imageHolder.width();
+        let cHeight = this.$imageHolder.height();
+        if (width/height < cWidth/cHeight) {
+            return 'up';
+        }
+        return 'down';
+    }
+
+    _calcStep() {
+        let {width, height} = this._resolution();
         return Math.max(1, Math.min(50, width / height * 10));
     }
 
@@ -588,7 +612,11 @@ export default class App {
         this.setObjectPosition(x + step, y + step);
     }
 
-    _isCover() {
-        return this.$imageHolder.hasClass('cover');
+    _isObjectFitCover() {
+        return this.$imageHolder.hasClass('object-fit-cover');
+    }
+    
+    _isObjectFitNone() {
+        return this.$imageHolder.hasClass('object-fit-none');
     }
 }
