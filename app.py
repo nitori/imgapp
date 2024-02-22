@@ -82,8 +82,11 @@ def resolve_path(path_str: str) -> Path:
 def calculate_folder_hash(path: Path) -> str:
     digest = hashlib.sha256()
     for item in sorted(path.iterdir(), key=lambda p: p.name):
-        digest.update(item.name.encode('utf-8'))
-        digest.update(str(item.stat().st_mtime).encode('utf-8'))
+        try:
+            digest.update(item.name.encode('utf-8'))
+            digest.update(str(item.stat().st_mtime).encode('utf-8'))
+        except FileNotFoundError:
+            continue
     return digest.hexdigest()
 
 
@@ -133,12 +136,15 @@ def folder_list():
                 'symlink': entry.is_symlink(),
             })
         elif entry.suffix in EXTENSIONS:
-            files.append({
-                'name': entry.name,
-                'path': str(entry).replace('\\', '/'),
-                'mtime': entry.stat().st_mtime,
-                'symlink': entry.is_symlink(),
-            })
+            try:
+                files.append({
+                    'name': entry.name,
+                    'path': str(entry).replace('\\', '/'),
+                    'mtime': entry.stat().st_mtime,
+                    'symlink': entry.is_symlink(),
+                })
+            except FileNotFoundError:
+                continue
 
     return jsonify(
         canonical_path=str(path).replace('\\', '/'),
