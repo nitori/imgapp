@@ -63,6 +63,8 @@ const defaultState = {
 
     sortBy: 'name',
     sortOrder: 'asc',
+
+    volume: 1.0,
 }
 
 export default class App {
@@ -333,6 +335,11 @@ export default class App {
         video.loop = true;
         video.src = url.toString();
         video.classList.add('media-item');
+        video.addEventListener('volumechange', ev => {
+            this.state.volume = ev.target.volume;
+            this.save();
+        });
+        video.volume = this.state.volume || 1.0;
         return video;
     }
 
