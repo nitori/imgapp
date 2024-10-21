@@ -31,6 +31,7 @@ EXTENSIONS = {
     '.webp': 'image/webp',
     '.webm': 'video/webm',
     '.mp4': 'video/mp4',
+    '.mkv': 'video/x-matroska',
 }
 
 app = Flask(__name__)
