@@ -115,6 +115,7 @@ export default class App {
 
     save() {
         localStorage.setItem('imageapp-state', JSON.stringify(this.state));
+        history.pushState('', {}, '#' + this.state.currentPath);
     }
 
     async _startPolling() {
@@ -164,7 +165,7 @@ export default class App {
         this.state.currentPath = data.canonical_path;
         this.state.folders = data.folders;
         this.state.files = data.files;
-        this.state.folderHash = data.hash;
+        this.state.folderHash = data.hash.hash;
         this._resort();
 
         if (this.state.files.length > 0) {
@@ -189,6 +190,7 @@ export default class App {
         this.state.currentFile = this.state.files[this._fileIndex].path;
         this.save();
         this._render();
+        this.setObjectPosition(0, 0);
     }
 
     prevFile() {
@@ -300,7 +302,7 @@ export default class App {
         this.$imageHolder.empty();
         let $media;
 
-        if (this.state.currentFile.match(/\.(mp4|webm)$/)) {
+        if (this.state.currentFile.match(/\.(mp4|webm|mkv)$/)) {
             $media = $(this._getVideo(this.state.currentFile));
         } else {
             $media = $(this._getImage(this.state.currentFile));
@@ -357,13 +359,19 @@ export default class App {
         } else {
             this._fileCache[file].ts = Date.now() / 1000.0;
         }
+
+        if (url.searchParams.get('path').endsWith('.gif')) {
+            url.searchParams.set('t', String(Date.now()));
+            this._fileCache[file].img.src = url.toString();
+        }
+
         return this._fileCache[file].img;
     }
 
     _getResolution() {
         const $media = this.$imageHolder.find('.media-item');
-        let width = $media[0].naturalWidth || $media[0].videoWidth || 0;
-        let height = $media[0].naturalHeight || $media[0].videoHeight || 0;
+        let width = $media[0] && $media[0].naturalWidth || $media[0].videoWidth || 0;
+        let height = $media[0] && $media[0].naturalHeight || $media[0].videoHeight || 0;
         return {width, height};
     }
 
@@ -387,10 +395,10 @@ export default class App {
         }
         let nextIndex = Math.min(this.state.files.length - 1, this._fileIndex + 1);
         let prevIndex = Math.max(0, this._fileIndex - 1);
-        if (!this.state.files[nextIndex].path.match(/\.(mp4|webm)$/)) {
+        if (!this.state.files[nextIndex].path.match(/\.(mp4|webm|mkv)$/)) {
             this._getImage(this.state.files[nextIndex].path);
         }
-        if (!this.state.files[prevIndex].path.match(/\.(mp4|webm)$/)) {
+        if (!this.state.files[prevIndex].path.match(/\.(mp4|webm|mkv)$/)) {
             this._getImage(this.state.files[prevIndex].path);
         }
     }
@@ -582,16 +590,18 @@ export default class App {
             y = 50;
         }
         const $mediaItem = this.$imageHolder.find('.media-item');
-        $mediaItem.css('object-position', `${x}% ${y}%`);
+        if (this._isMediaBigger()) {
+            $mediaItem.css('object-position', `${x}% ${y}%`);
+        }
     }
-    
+
     _resolution() {
         const $mediaItem = this.$imageHolder.find('.media-item');
-        const width = $mediaItem[0].naturalWidth || $mediaItem[0].videoWidth;
-        const height = $mediaItem[0].naturalHeight || $mediaItem[0].videoHeight;
+        const width = $mediaItem[0] && $mediaItem[0].naturalWidth || $mediaItem[0].videoWidth;
+        const height = $mediaItem[0] && $mediaItem[0].naturalHeight || $mediaItem[0].videoHeight;
         return {width, height};
     }
-    
+
     _direction() {
         let {width, height} = this._resolution();
         let cWidth = this.$imageHolder.width();
@@ -602,9 +612,20 @@ export default class App {
         return 'down';
     }
 
+    _isMediaBigger() {
+        if (this._isObjectFitCover() || this._isObjectFitNone()) {
+            let {width, height} = this._resolution();
+            let cWidth = this.$imageHolder.width();
+            let cHeight = this.$imageHolder.height();
+            return width > cWidth || height > cHeight;
+        }
+        return false;
+    }
+
     _calcStep() {
         let {width, height} = this._resolution();
-        return Math.max(1, Math.min(50, width / height * 10));
+        let r = height > width ? width / height : height / width;
+        return Math.max(1, Math.min(50, r * 10));
     }
 
     moveMediaUp() {
@@ -622,7 +643,7 @@ export default class App {
     _isObjectFitCover() {
         return this.$imageHolder.hasClass('object-fit-cover');
     }
-    
+
     _isObjectFitNone() {
         return this.$imageHolder.hasClass('object-fit-none');
     }
