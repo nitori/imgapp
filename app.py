@@ -16,6 +16,7 @@ imgapp. If not, see <https://www.gnu.org/licenses/>.
 import hashlib
 from pathlib import Path
 import os
+import time
 
 from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify, request, send_file
@@ -79,7 +80,8 @@ def resolve_path(path_str: str) -> Path:
     return path
 
 
-def calculate_folder_hash(path: Path) -> str:
+def calculate_folder_hash(path: Path) -> tuple[str, float]:
+    start = time.perf_counter()
     digest = hashlib.sha256()
     for item in sorted(path.iterdir(), key=lambda p: p.name):
         try:
@@ -87,7 +89,8 @@ def calculate_folder_hash(path: Path) -> str:
             digest.update(str(item.stat().st_mtime).encode('utf-8'))
         except FileNotFoundError:
             continue
-    return digest.hexdigest()
+    elapsed = time.perf_counter() - start
+    return digest.hexdigest(), elapsed
 
 
 @app.route('/')
@@ -146,11 +149,12 @@ def folder_list():
             except FileNotFoundError:
                 continue
 
+    hash_, duration = calculate_folder_hash(path)
     return jsonify(
         canonical_path=str(path).replace('\\', '/'),
         folders=folders,
         files=files,
-        hash=calculate_folder_hash(path),
+        hash=dict(hash=hash_, duration=duration),
     )
 
 
@@ -176,7 +180,8 @@ def folder_hash():
         path = resolve_path(path_str)
     except HttpError as e:
         return jsonify(error=str(e)), e.status_code
-    return jsonify(hash=calculate_folder_hash(path))
+    hash_, duration = calculate_folder_hash(path)
+    return jsonify(hash=hash_, duration=duration)
 
 
 if __name__ == '__main__':
