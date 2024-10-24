@@ -138,7 +138,7 @@ def folder_list():
                 'path': str(entry).replace('\\', '/'),
                 'symlink': entry.is_symlink(),
             })
-        elif entry.suffix in EXTENSIONS:
+        elif entry.suffix.lower() in EXTENSIONS:
             try:
                 files.append({
                     'name': entry.name,
@@ -167,10 +167,10 @@ def get_file():
     if not path.is_file():
         return jsonify(error='Path is not a file'), 400
 
-    if path.suffix not in EXTENSIONS:
+    if path.suffix.lower() not in EXTENSIONS:
         return jsonify(error='File type not supported'), 400
 
-    return send_file(path, mimetype=EXTENSIONS[path.suffix], max_age=3600)
+    return send_file(path, mimetype=EXTENSIONS[path.suffix.lower()], max_age=3600)
 
 
 @app.route('/folder-hash', methods=['GET'])
